@@ -124,8 +124,8 @@ let answer = Coord.cartesian(size: schem.size)
                     default: return false
                 }
             }
-            .map { (c, loc) in
-                c.around.compactMap { schem.location(at: $0) }.map(\.value).reduce(0, +)
+            .flatMap { (c, loc) in
+                c.around.compactMap { schem.location(at: $0) }.map(\.value)
             }
             .reduce(0, +)
 
