@@ -1,13 +1,5 @@
 import Foundation
-
-func slurp(path: String) -> String {
-    let url = URL(fileURLWithPath: path)
-    do {
-        return try String(contentsOf: url)
-    } catch {
-        fatalError("Failed to open: \(path)")
-    }
-}
+import Util
 
 func part1(_ data: String) -> Int {
     return data.split(separator: "\n")
