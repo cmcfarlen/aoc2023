@@ -26,6 +26,13 @@ extension Coord {
         ]
     }
 
+    var left: Coord {
+        Coord(x: x - 1, y: y)
+    }
+    var right: Coord {
+        Coord(x: x + 1, y: y)
+    }
+
     static func cartesian(width: Int, height: Int) -> [Coord] {
         (0..<width).flatMap { cx in
           (0..<height).map { cy in
@@ -52,6 +59,33 @@ enum Location {
             self = .symbol(ch)
         }
     }
+
+    var value: Int {
+        if case let .number(x) = self {
+            return x
+        }
+        return 0
+    }
+
+    static func isNumber(_ lin: Location?) -> Bool {
+        guard let l = lin else {
+            return false
+        }
+        switch l {
+            case .number(_): return true
+            default: return false
+        }
+    }
+
+    static func isSymbol(_ lin: Location?) -> Bool {
+        guard let l = lin else {
+            return false
+        }
+        switch l {
+            case .symbol(_): return true
+            default: return false
+        }
+    }
 }
 
 extension Location: CustomStringConvertible {
@@ -61,13 +95,6 @@ extension Location: CustomStringConvertible {
             case .number(let x): return "\(x)"
             case .symbol(let x): return "\(x)"
         }
-    }
-
-    var value: Int {
-        if case let .number(x) = self {
-            return x
-        }
-        return 0
     }
 }
 
@@ -92,6 +119,30 @@ struct Schematic {
         locations[safe: at.y]?[safe: at.x]
     }
 
+    func value(at loc: Coord) -> Int {
+        var result = 0
+        var cur = loc
+        var start = loc
+        var p = location(at: loc)
+        while Location.isNumber(p) {
+            start = cur
+            cur = cur.left
+            p = location(at: cur)
+        }
+
+        print("in \(loc) start \(start)")
+
+        p = location(at: start)
+        while case .number(let n) = p {
+            result *= 10
+            result += n
+            start = start.right
+            p = location(at: start)
+        }
+
+        return result
+    }
+
 }
 
 extension Schematic: CustomStringConvertible {
@@ -108,13 +159,16 @@ let data = slurp(path: "day3.data")
 
 let schem = Schematic(data: data)
 
+/*
 let test = Coord(x: 3, y: 1)
 print("loc \(test) = \(String(describing: schem.location(at: test)))")
 
 print("around \(test): \(test.around)")
 print("cartesian \(Coord.cartesian(width: 5, height: 5))")
 
-let answer = Coord.cartesian(size: schem.size)
+print("value at \(schem.value(at: Coord(x: 1, y: 0)))")
+
+let wrong_answer = Coord.cartesian(size: schem.size)
             .map { c in
                (c, schem.location(at: c)!)
             }
@@ -125,10 +179,49 @@ let answer = Coord.cartesian(size: schem.size)
                 }
             }
             .flatMap { (c, loc) in
-                c.around.compactMap { schem.location(at: $0) }.map(\.value)
+                c.around.compactMap { schem.location(at: $0) }.map { schematic.value(at: $0) }
             }
             .reduce(0, +)
+*/
 
+
+var answer = 0
+var inNumber = false
+var hasSymbol = false
+var currentValue = 0
+for y in 0..<schem.size.y {
+    for x in 0..<schem.size.x {
+        let l = schem.locations[y][x]
+        print("\(x) \(y) \(l) \(inNumber) \(hasSymbol)")
+        if inNumber {
+            switch l {
+               case .number(let n):
+                  currentValue = currentValue * 10 + n
+                  if !hasSymbol {
+                      print(Coord(x: x, y: y).around.compactMap { schem.location(at: $0) })
+                      hasSymbol = Coord(x: x, y: y).around.compactMap { schem.location(at: $0) }.contains(where: Location.isSymbol)
+                  }
+               default:
+                  if hasSymbol {
+                      answer += currentValue
+                  }
+                  inNumber = false
+                  currentValue = 0
+                  hasSymbol = false
+            }
+        } else {
+            switch l {
+            case .number(let n):
+                print(Coord(x: x, y: y).around.compactMap { schem.location(at: $0) })
+               hasSymbol = Coord(x: x, y: y).around.compactMap { schem.location(at: $0) }.contains(where: Location.isSymbol)
+               inNumber = true
+               currentValue = n
+            default:
+               print("nothing")
+            }
+        }
+    }
+}
 
 print("answer: \(answer)")
 
