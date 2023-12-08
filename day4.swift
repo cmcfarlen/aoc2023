@@ -30,9 +30,7 @@ struct Card {
         }
         numbers = game[1].split(separator: " ").map { Int($0)! }
     }
-
 }
-
 
 let cards = data.split(separator: "\n").map { Card($0) }
 
@@ -42,3 +40,17 @@ cards.forEach { c in
 
 let answer = cards.map(\.score).reduce(0, +)
 print("answer: \(answer)")
+
+var duplicates = [Int](repeating: 1, count: cards.count)
+
+cards.forEach { c in
+    let idx = c.id - 1
+    if c.matches.count > 0 {
+        for d in 0..<c.matches.count {
+            duplicates[idx + d + 1] += duplicates[idx]
+        }
+    }
+    print("card \(c.id) duplicates \(duplicates) matches \(c.matches.count)")
+}
+
+print("answer: \(duplicates.reduce(0, +))")
