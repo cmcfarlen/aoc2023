@@ -7,9 +7,11 @@ let data = slurp(path: "day9.data").split(separator: "\n")
                 }
 
 func extrapolateNext(from value: [Int]) -> Int {
-    let reductions = iterate(value) { $0.partition(size: 2, stepping: 1)
-                       .map { $0.last! - $0.first! } }
-                       .prefix { !$0.allSatisfy { $0 == 0 } }
+    let reductions = iterate(value) {
+                        $0.partition(size: 2, stepping: 1)
+                          .map { $0.last! - $0.first! }
+                     }
+                     .prefix { !$0.allSatisfy { $0 == 0 } }
     return reductions.reversed().reduce(0) { x, n in
         x + n.last!
     }
